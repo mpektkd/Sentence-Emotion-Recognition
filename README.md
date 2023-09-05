@@ -1,6 +1,9 @@
 # Sentence-Emotion-Recognition
 Deep Learning, NLP
 
+This is part of ECE NTUA project. I present ONLY the last task, where i developed an idea
+for Sentiment Regression improvement and use the previous only as reference for this idea.
+
 We are going to present a regression model that predict the 'quantity' of the emotion 
 for a specific sentence, after applying transfer learning to a BiDirectional Atteniton
 LSTM being trained on 'Semeval2017A' dataset. 
