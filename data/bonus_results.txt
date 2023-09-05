@@ -1,0 +1,25 @@
+Model: AngerRegressionLSTM
+	Dataset: Semeval2018
+	Epoch: 20
+	Loss: 0.021818181965500116
+
+Model: FearRegressionLSTM
+	Dataset: Semeval2018
+	Epoch: 20
+	Loss: 0.019235286046750844
+
+Model: SadnessRegressionLSTM
+	Dataset: Semeval2018
+	Epoch: 16
+	Loss: 0.021999836899340153
+
+Model: JoyRegressionLSTM
+	Dataset: Semeval2018
+	Epoch: 11
+	Loss: 0.02446660026907921
+
+Model: MixtureRegressionLSTM
+	Dataset: Semeval2018
+	Epoch: 11
+	Loss: 0.026382137622152056
+
