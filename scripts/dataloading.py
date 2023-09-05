@@ -88,10 +88,8 @@ class SentenceDataset(Dataset):
                 length = 4
         """
 
-        # EX3
         # Find only the result for the given phrase | saves time in comparison with the first
         phrase = self.data[index]
-        # print(phrase)
         sentence = []
         phrase = phrase[:self.avg]
         

@@ -6,7 +6,7 @@ from config import DATA_PATH
 
 SEPARATOR = "\t"
 
-
+# This code was given.
 def clean_text(text):
     """
     Remove extra quotes from text files and html entities

@@ -35,13 +35,15 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 # Download the embeddings of your choice
 # for example http://nlp.stanford.edu/data/glove.6B.zip
 
-# 1 - point to the pretrained embeddings file (must be in /embeddings folder)
+# point to the pretrained embeddings file (must be in /embeddings folder)
 EMBEDDINGS = os.path.join(EMB_PATH, "glove.twitter.27B.50d.txt")
+
 # EMBEDDINGS = os.path.join(EMB_PATH, "glove.6B.50d.txt")
 CHECKPOINT = 'bestmodel.pt'
 if not os.path.isdir('./plots'):
     os.mkdir('./plots')
-# 2 - set the correct dimensionality of the embeddings
+
+# set the correct dimensionality of the embeddings
 # BoW = 'BoW'
 BoW = ''
 EMB_DIM = 50
@@ -54,9 +56,11 @@ EMB_TRAINABLE = False
 BATCH_SIZE = 128
 EPOCHS = 30
 ETA = 1e-3
+
 # DATASET = "MR"  # options: "MR", "Semeval2017A"
 DATASETS = ["MR"]     #DATASETS = ["Semeval2017A"]
 BEST = {'MR':[]}      #BEST = {'Semeval2017A':[]}
+
 # if your computer has a CUDA compatible gpu use it, otherwise use the cpu
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -110,12 +114,8 @@ with open(results, 'w') as f:
             train_set = SentenceDataset(X_train, y_train, word2idx, AVG)
             test_set = SentenceDataset(X_test, y_test, word2idx, AVG)
 
-            # EX2|EX3: print the 5 first elements in train set
-            for i in range (0,5):
-                print("{} {}\n".format(X_train[i],train_set[i]))
 
-
-            ###########         6.1 BoW         ############
+            ###########         BoW         ############
             if BoW == 'BoW':
                 count_vect = CountVectorizer()      #vectorize
                 X_train_counts = count_vect.fit_transform(X_train)
@@ -149,66 +149,59 @@ with open(results, 'w') as f:
                         embeddings[word2idx[word]] = embeddings[word2idx[word]]*tfidfs[word]
         
 
-            # EX2|EX3: print the  10 first elements in train set    
-            for i in range (0,1):
-                print("{}\n".format(train_set[i]))
-
-            # EX4 - Define our PyTorch-based DataLoader
-            train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)  # EX7
-            test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True)  # EX7
-            #############################################################################
-            # Model Definition (Model, Loss Function, Optimizer)
-            #############################################################################
-            ###     Preperation     ###
+            # Define our PyTorch-based DataLoader
+            train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)  
+            test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True)  
+            # Model Choice
             if MODEL == "BaselineDNN":
-                model = BaselineDNN(output_size=n_classes,  # EX8
+                model = BaselineDNN(output_size=n_classes,  
                                     embeddings=embeddings,
                                     hidden_layer=DNN_HIDDEN_LAYER,
                                     trainable_emb=EMB_TRAINABLE
                                     )
-            ###     Task 2     ###
+
             elif MODEL == "AdvancedDNN":
-                model = AdvancedDNN(output_size=n_classes,  # EX8
+                model = AdvancedDNN(output_size=n_classes,  
                                 embeddings=embeddings,
                                 hidden_layer=DNN_HIDDEN_LAYER,
                                 trainable_emb=EMB_TRAINABLE,
                                     )
 
             elif MODEL == "IntermediateLSTM": 
-                model = IntermediateLSTM(output_size=n_classes,  # EX8
+                model = IntermediateLSTM(output_size=n_classes,
                                         embeddings=embeddings,
                                         hidden_layer=LSTM_HIDDEN_LAYER,
                                         trainable_emb=EMB_TRAINABLE,
                                     )
 
             elif MODEL == "AdvancedLSTM":
-                model = AdvancedLSTM(output_size=n_classes,  # EX8
+                model = AdvancedLSTM(output_size=n_classes,  
                                     embeddings=embeddings,
                                     hidden_layer=LSTM_HIDDEN_LAYER,
                                     trainable_emb=EMB_TRAINABLE,
                                     )
-            ###     Task 3      ###
+
             elif MODEL == "E_Attention":
                 model = E_Attention(attention_size=EMB_DIM,
-                                        output_size=n_classes,  # EX8
+                                        output_size=n_classes,  
                                         embeddings=embeddings,
                                         trainable_emb=EMB_TRAINABLE)
 
             elif MODEL == "H_AttentionLSTM":
                 model = H_AttentionLSTM(attention_size=EMB_DIM,
-                                        output_size=n_classes,  # EX8
+                                        output_size=n_classes,  
                                         embeddings=embeddings,
                                         trainable_emb=EMB_TRAINABLE)
-            ###     Task 4      ###
+
             elif MODEL == "BiAdvancedLSTM":
-                model = BiAdvancedLSTM(output_size=n_classes,  # EX8
+                model = BiAdvancedLSTM(output_size=n_classes,  
                                     embeddings=embeddings,
                                     hidden_layer=LSTM_HIDDEN_LAYER,
                                     trainable_emb=EMB_TRAINABLE)
 
             elif MODEL == "BiH_AttentionLSTM":
                 model = BiH_AttentionLSTM(attention_size=EMB_DIM,
-                                        output_size=n_classes,  # EX8
+                                        output_size=n_classes,  
                                         embeddings=embeddings,
                                         trainable_emb=EMB_TRAINABLE)
 
@@ -218,10 +211,10 @@ with open(results, 'w') as f:
 
             # We optimize ONLY those parameters that are trainable (p.requires_grad==True)
 
-            criterion = nn.CrossEntropyLoss() # EX8
+            criterion = nn.CrossEntropyLoss()
             parameters = [parameter for parameter in list(model.parameters()) if parameter.requires_grad==True]
 
-            optimizer = optim.Adam(parameters, lr=ETA)  # EX8
+            optimizer = optim.Adam(parameters, lr=ETA)  
 
             #############################################################################
             # Training Pipeline
@@ -236,7 +229,6 @@ with open(results, 'w') as f:
             base = time.time()
             early = EarlyStopping(patience=PATIENCE)
             ep = 0
-            # break
           
             for epoch in tqdm(range(1, EPOCHS + 1)):
                 ep += 1
@@ -263,7 +255,7 @@ with open(results, 'w') as f:
                 
                 test_loss, y_test_gold, y_test_pred = eval_dataset(test_loader,model,criterion)
                 
-                if MODEL == "E_Attention":      #store the appropiate model for NeAt-Vision
+                if MODEL == "E_Attention":      # store the appropiate model for NeAt-Vision
                     if E_loss > test_loss:
                         E_loss = test_loss
                         E_model = copy.deepcopy(model)
@@ -288,15 +280,15 @@ with open(results, 'w') as f:
 
                 print(f'\t Epoch: {epoch} \t recall Score: {recall[1, epoch-1]}')
 
-                early.__call__(accuracy, f1, recall, train_loss, test_loss, epoch)   #call the object early for checking the advance
-                if early.stopping() == True:    #if true then stop the training to avoid overfitting
+                early.__call__(accuracy, f1, recall, train_loss, test_loss, epoch)   # call the object early for checking the advance
+                if early.stopping() == True:    # if true then stop the training to avoid overfitting
                         break
                 tm = time.time() - now
                 total += tm
                 print("Epoch total time", tm)
                 best = early.get_best()    
                 if BEST[DATASET] == []:
-                    BEST[DATASET] = [MODEL, best.copy(), copy.deepcopy(model)]      #find best model
+                    BEST[DATASET] = [MODEL, best.copy(), copy.deepcopy(model)]      # find best model
 
                 elif BEST[DATASET][1]['loss'][1] > best['loss'][1]:
                     BEST[DATASET] = [MODEL, best.copy(), copy.deepcopy(model)]
@@ -309,10 +301,10 @@ with open(results, 'w') as f:
             if MODEL == "H_AttentionLSTM":
                 torch.save(H_model, "./H_AttentionLSTM.pt")
 
-            #template string for storing the results
+            # template string for storing the results
             t = Template('Model: $model\n\tDataset: $dataset\n\tEpoch: $epoch\n\tLoss: $loss\n\tAccuracy: $acc\n\tF1: $f1\n\tRecall: $recall\n\n')
             
-            #keep the res
+            # keep the res
             f.write(t.substitute(model=MODEL, dataset=DATASET, epoch=best['epoch'], loss=best['loss'][1], acc=best['accuracy'][1], f1=best['f1'][1], recall=best['recall'][1]))
 
             datasets = ['Train Set', 'Test Set']
@@ -361,7 +353,6 @@ with open(results, 'w') as f:
 
             plt.tight_layout()
 
-            # plt.show()
             plt.close()
             figure.savefig('./plots/'+BoW+MODEL + "_" + DATASET+'.pdf')
 
@@ -369,7 +360,6 @@ with open(results, 'w') as f:
 if BoW=='':
     
     torch.save(BEST['MR'][2], BEST['MR'][0]+CHECKPOINT)
-    ####        Task 5          ####
     with open('predictions.txt', 'w') as file:
 
         test_loss, y_test_gold, y_test_pred = eval_dataset(test_loader,BEST['MR'][2],criterion)

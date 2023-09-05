@@ -35,12 +35,13 @@ warnings.filterwarnings("ignore", category=UndefinedMetricWarning)
 # Download the embeddings of your choice
 # for example http://nlp.stanford.edu/data/glove.6B.zip
 
-# 1 - point to the pretrained embeddings file (must be in /embeddings folder)
+# point to the pretrained embeddings file (must be in /embeddings folder)
 EMBEDDINGS = os.path.join(EMB_PATH, "glove.twitter.27B.50d.txt")
 CHECKPOINT = 'bonus_bestmodel.pt'
 if not os.path.isdir('./bonus_plots'):
     os.mkdir('./bonus_plots')
-# 2 - set the correct dimensionality of the embeddings
+
+# set the correct dimensionality of the embeddings
 EMB_DIM = 50
 BONUS = True
 AVG = 50
@@ -50,9 +51,11 @@ EMB_TRAINABLE = False
 BATCH_SIZE = 128
 EPOCHS = 10
 ETA = 1e-3
+
 # DATASET = "MR"  # options: "MR", "Semeval2017A"
 DATASET = "Semeval2017A"
 BEST = {'Semeval2017A':[]}
+
 # if your computer has a CUDA compatible gpu use it, otherwise use the cpu
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -76,8 +79,6 @@ with open('bonus_results.txt', 'w') as f:
     else:
         raise ValueError("Invalid dataset")
 
-    y_train_labels = y_train[:10]   # keep copy of first 10 labels in train set
-
     # a general aproach that uses sklern to count and enumarate all labels
     le = LabelEncoder()
     le.fit(y_train)
@@ -86,21 +87,13 @@ with open('bonus_results.txt', 'w') as f:
     y_test = le.transform(y_test) # update label in test set
     n_classes = le.classes_.size # the number of the total labels
 
-    # print the substitution of the 10 first labels in train set
-    for i in range (0,10):
-        print("{} --> {}\n".format(y_train_labels[i],y_train[i]))
-
     # Define our PyTorch-based Dataset
     train_set = SentenceDataset(X_train, y_train, word2idx, AVG, bonus=BONUS)
     test_set = SentenceDataset(X_test, y_test, word2idx, AVG, bonus=BONUS)
 
-    # EX2|EX3: print the  10 first elements in train set    
-    for i in range (0,1):
-        print("{}\n".format(train_set[i]))
-
-    # EX4 - Define our PyTorch-based DataLoader
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)  # EX7
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True)  # EX7
+    # Define our PyTorch-based DataLoader
+    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)  
+    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True)  
     #############################################################################
     # Model Definition (Model, Loss Function, Optimizer)
     #############################################################################
@@ -175,8 +168,8 @@ with open('bonus_results.txt', 'w') as f:
 
         print(f'\t Epoch: {epoch} \t recall Score: {recall[1, epoch-1]}')
 
-        early.__call__(accuracy, f1, recall, train_loss, test_loss, epoch)   #call the object early for checking the advance
-        if early.stopping() == True:    #if true then stop the training to avoid overfitting
+        early.__call__(accuracy, f1, recall, train_loss, test_loss, epoch)   # call the object early for checking the advance
+        if early.stopping() == True:    # if true then stop the training to avoid overfitting
                 break
         tm = time.time() - now
         total += tm

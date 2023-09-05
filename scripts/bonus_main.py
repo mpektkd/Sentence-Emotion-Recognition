@@ -36,9 +36,6 @@ DATASET = 'Semeval2018'
 # if your computer has a CUDA compatible gpu use it, otherwise use the cpu
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BEST = {'AngerRegressionLSTM':[], 'FearRegressionLSTM':[], 'SadnessRegressionLSTM':[], 'JoyRegressionLSTM':[], 'MixtureRegressionLSTM':[]}
-########################################################
-# Define PyTorch datasets and dataloaders
-########################################################
 
 # load word embeddings
 print("loading word embeddings...")
@@ -51,51 +48,58 @@ with open('bonus_results.txt','w')as file:
         mixture = False
         if touple[0] == 'MixtureRegressionLSTM':
             mixture = True
+
         # target model
         model = LSTMRegression(attention_size=EMB_DIM, output_size=1, embeddings=embeddings, trainable_emb=False, batch_first=False, mixture=mixture)
+
         # load source model
         pretrained_dict = torch.load(CHECKPOINT).state_dict()
 
         model_dict = model.state_dict()
-        # 1. filter out unnecessary keys
+
+        # filter out unnecessary keys
         pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
-        # 2. overwrite entries in the existing state dict
+
+        # overwrite entries in the existing state dict
         model_dict.update(pretrained_dict) 
-        # 3. load the new state dict
+
+        # load the new state dict
         model.load_state_dict(pretrained_dict, strict=False)
         model.to(DEVICE)
-        print(model)
+        
         #load dataset
         X_train, y_train, z_train, X_dev, y_dev, z_dev = load_EI(emotion=touple[1])
 
-        #create dataset
+        # create dataset
         train_set = RegressionDataset(X_train, y_train, z_train, word2idx, AVG)
         dev_set = RegressionDataset(X_dev, y_dev, z_dev, word2idx, AVG)
 
-        #Create Dataloaders
+        # Create Dataloaders
         train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
         dev_loader = DataLoader(dev_set, batch_size=BATCH_SIZE, shuffle=True)
 
-        criterion = nn.MSELoss() # EX8
+        criterion = nn.MSELoss() 
         parameters = [parameter for parameter in list(model.parameters()) if parameter.requires_grad==True]
 
-        optimizer = optim.Adam(parameters, lr=ETA)  # EX8
+        optimizer = optim.Adam(parameters, lr=ETA)  
 
         #############################################################################
             # Training Pipeline
-            #############################################################################
+        #############################################################################
+        
         losses = np.zeros((2,EPOCHS))
         total = 0
         base = time.time()
         early = EarlyStopping(patience=PATIENCE)
         ep = 0
-        # break
+
         for epoch in tqdm(range(1, EPOCHS + 1)):
             ep += 1
             now = time.time()
             
             # train the model for one epoch
             train_dataset(epoch, train_loader, model, criterion, optimizer)
+
             # evaluate the performance of the model, on both data sets
             train_loss = eval_dataset(train_loader,model,criterion)
             
@@ -111,7 +115,7 @@ with open('bonus_results.txt','w')as file:
             print(f'\t Epoch: {epoch} \t loss: {losses[1, epoch-1]}')
 
             early.__call__(train_loss, dev_loss, epoch)   #call the object early for checking the advance
-            if early.stopping() == True:    #if true then stop the training to avoid overfitting
+            if early.stopping() == True:    # if true then stop the training to avoid overfitting
                     break
             tm = time.time() - now
             total += tm
@@ -123,7 +127,7 @@ with open('bonus_results.txt','w')as file:
         t = Template('Model: $model\n\tDataset: $dataset\n\tEpoch: $epoch\n\tLoss: $loss\n\n')
         print(f'Best Model:\n\tEpoch: {best["epoch"]}\n\tLoss: {best["loss"][1]}\n\n')
 
-        #keep the res
+        # keep the res
         file.write(t.substitute(model=touple[0], dataset=DATASET, epoch=best['epoch'], loss=best['loss'][1]))
 
         epochs = np.linspace(1, ep, ep)
@@ -139,7 +143,6 @@ with open('bonus_results.txt','w')as file:
         plt.grid()
         plt.legend()
 
-        # plt.show()
         plt.close()
         figure.savefig('./bonus_plots/'+touple[0]+'.pdf')
         

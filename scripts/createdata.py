@@ -26,6 +26,7 @@ AVG = 50
 DATASET = "MR"
 if not os.path.isdir('./json_files'):
     os.mkdir('./json_files')
+    
 # If your computer has a CUDA compatible gpu use it, otherwise use the cpu
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -41,10 +42,10 @@ else:
 # Splitting the dataset into batches and shuffling after each epoch
 
 # Convert data labels from strings to integers
+# Number of classes = 3 for Semeval2017
 le = LabelEncoder()
 y_test_n = le.fit_transform(y_test)
 n_classes = le.classes_.size
-# Number of classes = 3 for Semeval2017
 
 # Define our PyTorch-based Dataset
 test_set = SentenceDataset(X_test, y_test_n, word2idx, AVG)
@@ -64,8 +65,6 @@ for checkpoint in CHECKPOINTS:
     model = torch.load(checkpoint)
 
     model.eval()
-    # IMPORTANT: in evaluation mode, we don't want to keep the gradients
-    # so we do everything under torch.no_grad()
     data = []
     with torch.no_grad():
         for index, batch in enumerate(test_loader):

@@ -27,27 +27,27 @@ class BaselineDNN(nn.Module):
 
         super(BaselineDNN, self).__init__()
 
-        # 1 - define the embedding layer
         
-        # 2 - initialize the weights of our Embedding layer
+        # initialize the weights of our Embedding layer
         # from the pretrained word embeddings
         self.weight = torch.FloatTensor(embeddings) # EX4
-        # 3 - define if the embedding layer will be frozen or finetuned
+        
+        # define if the embedding layer will be frozen or finetuned
         self.trainable_emb = trainable_emb 
         
         self.embedding = nn.Embedding.from_pretrained(self.weight)
         self.embedding.weight.requires_grad = self.trainable_emb
 
-        # 4 - define a non-linear transformation of the representations
+        # define a non-linear transformation of the representations
         self.hidden_layer = hidden_layer
-        self.linear_layer = nn.Linear(embeddings.shape[1],self.hidden_layer)  # EX5 the first linear layer before ReLU
+        self.linear_layer = nn.Linear(embeddings.shape[1],self.hidden_layer) 
         self.d = nn.Dropout(p=.2)
-        self.activation_func = nn.ReLU()  #activation function  # EX5
+        self.activation_func = nn.ReLU()  
 
-        # 5 - define the final Linear layer which maps
+        # define the final Linear layer which maps
         # the representations to the classes
         
-        self.output = nn.Linear(self.hidden_layer,output_size)  # EX5
+        self.output = nn.Linear(self.hidden_layer,output_size)  
         
 
     def forward(self, x, lengths):
@@ -58,105 +58,115 @@ class BaselineDNN(nn.Module):
         Returns: the logits for each class
 
         """
-        # 1 - embed the words, using the embedding layer
-        embeddings = self.embedding(x)  # EX6
         
-        # 2 - construct a sentence representation out of the word embeddings
-        representations = torch.sum(embeddings,dim=1)  # EX6
+        # embed the words, using the embedding layer
+        embeddings = self.embedding(x)  
+        
+        # construct a sentence representation out of the word embeddings
+        representations = torch.sum(embeddings,dim=1)  
         
         for i in range(lengths.shape[0]):
             representations[i] = representations[i]/lengths[i]
-        # 3 - transform the representations to new ones.
-        representations = self.activation_func(self.d(self.linear_layer(representations)))  # EX6
-        # representations = self.activation_func(self.linear_layer(representations)) # EX6
+        
+        # transform the representations to new ones.
+        representations = self.activation_func(self.d(self.linear_layer(representations)))  
+        # representations = self.activation_func(self.linear_layer(representations)) 
 
-        # 4 - project the representations to classes using a linear layer
-        logits = self.output(representations)  # EX6
+        # project the representations to classes using a linear layer
+        logits = self.output(representations)  
         
         return logits
 
 
 class AdvancedDNN(nn.Module):
     def __init__(self, output_size, embeddings, hidden_layer, trainable_emb=False):
+        
         super(AdvancedDNN, self).__init__()
-        #initialize the weights of our Embedding layer from the pretrained word embeddings
+        
+        # initialize the weights of our Embedding layer from the pretrained word embeddings
         self.weight = torch.FloatTensor(embeddings)
 
-        #define if the embedding layer will be frozen or finetuned
+        # define if the embedding layer will be frozen or finetuned
         self.trainable_emb = trainable_emb
 
-        #define the embedding layer
+        # define the embedding layer
         self.embedding = nn.Embedding.from_pretrained(self.weight)
         self.embedding.weight.requires_grad = self.trainable_emb
         
-        #define a non-linear transformation of the representations
+        # define a non-linear transformation of the representations
         self.hidden_layer = hidden_layer # size of output of linearlayer
-        self.linear_layer = nn.Linear(embeddings.shape[1]*2,self.hidden_layer)  #first linear layer before RELU
+        self.linear_layer = nn.Linear(embeddings.shape[1]*2,self.hidden_layer)  
         self.d = nn.Dropout(p=.2)
-        self.activation_func = nn.ReLU()  #activation function  
+        self.activation_func = nn.ReLU()  
         #self.activation_func= nn.Tanh()
 
-        #define the final Linear layer which maps
+        # define the final Linear layer which maps
         self.output = nn.Linear(self.hidden_layer,output_size)
 
 
     def forward(self, x, lengths):
-        #embed the words, using the embedding layer
+        
+        # embed the words, using the embedding layer
         embeddings = self.embedding(x) 
 
-        #construct a sentence representation out of the word embeddings
+        # construct a sentence representation out of the word embeddings
         representations_1 = torch.sum(embeddings,dim=1)  
         for i in range(lengths.shape[0]):
             representations_1[i] = representations_1[i]/lengths[i]
 
         #find max element of embeddings for each sentance
         representations_2,_ = torch.max(embeddings,dim=1)
+        
         #concatenate the 2 represatations
         representations = torch.cat((representations_1,representations_2), dim=1)
-        # print(representations.shape)
 
-        # 3 - transform the representations to new ones.
+        # transform the representations to new ones.
         # representations = self.activation_func(self.linear_layer(representations))  
-        representations = self.activation_func(self.d(self.linear_layer(representations)))  # EX6
+        representations = self.activation_func(self.d(self.linear_layer(representations)))  
 
-        # 4 - project the representations to classes using a linear layer
+        # project the representations to classes using a linear layer
         logits = self.output(representations)  
+        
         return logits
 
 
 class IntermediateLSTM(nn.Module):
     def __init__(self, output_size, embeddings, hidden_layer, trainable_emb=False):
+        
         super(IntermediateLSTM, self).__init__()
-        #initialize the weights of our Embedding layer from the pretrained word embeddings
+        
+        # initialize the weights of our Embedding layer from the pretrained word embeddings
         self.weight = torch.FloatTensor(embeddings)
 
-        #define if the embedding layer will be frozen or finetuned
+        # define if the embedding layer will be frozen or finetuned
         self.trainable_emb = trainable_emb
 
-        #define the embedding layer
+        # define the embedding layer
         self.embedding = nn.Embedding.from_pretrained(self.weight)
         self.embedding.weight.requires_grad = self.trainable_emb
         
-        #define a non-linear transformation of the representations
+        # define a non-linear transformation of the representations
         self.hidden_layer = hidden_layer # size of output of linearlayer
 
-        #define the lstm
+        # define the lstm
         self.lstm = nn.LSTM(embeddings.shape[1],self.hidden_layer)
 
-        #define the final Linear layer which maps
+        # define the final Linear layer which maps
         self.output = nn.Linear(self.hidden_layer,output_size)
 
 
     def forward(self, x, lengths):
 
-        #define batch_size and max_length
+        # define batch_size and max_length
         batch_size, max_length = x.shape
-        #embed the words, using the embedding layer
+        
+        # embed the words, using the embedding layer
         embeddings = self.embedding(x)
 
         X = torch.nn.utils.rnn.pack_padded_sequence(embeddings, lengths, batch_first=True, enforce_sorted=False)
         ht, _ = self.lstm(X)
         ht, _ = torch.nn.utils.rnn.pad_packed_sequence(ht, batch_first=True)
+        
         # Sentence representation as the final hidden state of the model
         representations = torch.zeros(batch_size, self.hidden_layer).float()
         for i in range(lengths.shape[ 0]):
@@ -164,7 +174,7 @@ class IntermediateLSTM(nn.Module):
             representations[i] = ht[i, last, :]
             break
         
-        #project the representations to classes using a linear layer
+        # project the representations to classes using a linear layer
         logits = self.output(representations)  
 
         return logits
@@ -172,40 +182,35 @@ class IntermediateLSTM(nn.Module):
 
 class AdvancedLSTM(nn.Module):
     def __init__(self, output_size, embeddings, hidden_layer, trainable_emb=False):
+        
         super(AdvancedLSTM, self).__init__()
-        #initialize the weights of our Embedding layer from the pretrained word embeddings
+        
+        # initialize the weights of our Embedding layer from the pretrained word embeddings
         self.weight = torch.FloatTensor(embeddings)
 
-        #define if the embedding layer will be frozen or finetuned
+        # define if the embedding layer will be frozen or finetuned
         self.trainable_emb = trainable_emb
 
         self.hidden_layer = hidden_layer # size of output of linearlayer
 
-        #define the embedding layer
+        # define the embedding layer
         self.embedding = nn.Embedding.from_pretrained(self.weight)
         self.embedding.weight.requires_grad = self.trainable_emb
         
-        #define the lstm
+        # define the lstm
         self.lstm = nn.LSTM(embeddings.shape[1],self.hidden_layer)
 
-        #define a non-linear transformation of the representations
+        # define a non-linear transformation of the representations
         
         self.output = nn.Linear(2*embeddings.shape[1]+self.hidden_layer,output_size)
 
-        # #define a non-linear transformation of the representations
-        # self.linear_layer = nn.Linear(2*embeddings.shape[1]+self.hidden_layer,self.hidden_layer)  #first linear layer before RELU
-        # self.activation_func = nn.ReLU()  #activation function  
-        # #self.activation_func= nn.Tanh()
-
-        # #define the final Linear layer which maps
-        # self.output = nn.Linear(self.hidden_layer,output_size)
-
-
+        
     def forward(self, x, lengths):
 
-        #define batch_size and max_length
+        # define batch_size and max_length
         batch_size, max_length = x.shape
-        #embed the words, using the embedding layer
+        
+        # embed the words, using the embedding layer
         embeddings = self.embedding(x)
 
         X = torch.nn.utils.rnn.pack_padded_sequence(embeddings, lengths, batch_first=True, enforce_sorted=False)
@@ -218,32 +223,30 @@ class AdvancedLSTM(nn.Module):
             last = lengths[i] - 1 if lengths[i] <= max_length else max_length - 1
             representations_1[i] = ht[i, last, :]
         
-        #construct a sentence representation out of the word embeddings
+        # construct a sentence representation out of the word embeddings
         representations_2 = torch.sum(embeddings,dim=1)  
         for i in range(lengths.shape[0]):
             representations_2[i] = representations_2[i]/lengths[i]
         
-        #find max element of embeddings for each sentance
+        # find max element of embeddings for each sentance
         representations_3,_ = torch.max(embeddings,dim=1)
 
-        #concatenate the 3 represatations
+        # concatenate the 3 represatations
         representations = torch.cat((representations_1,representations_2,representations_3),dim=1)
 
-        ##transform the representations to new ones.
-        # representations = self.activation_func(self.linear_layer(representations))  
-
-        #project the representations to classes using a linear layer
+        # project the representations to classes using a linear layer
         logits = self.output(representations)  
 
         return logits
 
+## The SelfAttention class was given from the Lab. ##
 class SelfAttention(nn.Module):
     def __init__(self, attention_size, batch_first=False):
+
         super(SelfAttention, self).__init__()
 
         self.batch_first = batch_first
         self.attention_weights = Parameter(torch.FloatTensor(attention_size))
-        print(self.attention_weights.requires_grad)
         self.softmax = nn.Softmax(dim=-1)
 
         self.non_linearity = nn.Tanh()
@@ -378,39 +381,34 @@ class H_AttentionLSTM(SelfAttention):
 
 class BiAdvancedLSTM(nn.Module):
     def __init__(self, output_size, embeddings, hidden_layer, trainable_emb=False):
+        
         super(BiAdvancedLSTM, self).__init__()
-        #initialize the weights of our Embedding layer from the pretrained word embeddings
+        
+        # initialize the weights of our Embedding layer from the pretrained word embeddings
         self.weight = torch.FloatTensor(embeddings)
 
-        #define if the embedding layer will be frozen or finetuned
+        # define if the embedding layer will be frozen or finetuned
         self.trainable_emb = trainable_emb
 
-        #define the embedding layer
+        # define the embedding layer
         self.embedding = nn.Embedding.from_pretrained(self.weight)
         self.embedding.weight.requires_grad = self.trainable_emb
         
         self.hidden_layer = hidden_layer # size of output of linearlayer
 
-        #define the lstm
+        # define the lstm
         self.lstm = nn.LSTM(embeddings.shape[1],self.hidden_layer, bidirectional=True)
 
-        #define the final Linear layer which maps
+        # define the final Linear layer which maps
         self.output = nn.Linear(2*(embeddings.shape[1]+self.hidden_layer),output_size)
-
-        # #define a non-linear transformation of the representations
-        # self.linear_layer = nn.Linear(2*(embeddings.shape[1]+self.hidden_layer),self.hidden_layer)  #first linear layer before RELU
-        # self.activation_func = nn.ReLU()  #activation function  
-        # #self.activation_func= nn.Tanh()
-
-        # #define the final Linear layer which maps
-        # self.output = nn.Linear(self.hidden_layer,output_size)
 
 
     def forward(self, x, lengths):
 
-        #define batch_size and max_length
+        # define batch_size and max_length
         batch_size, max_length = x.shape
-        #embed the words, using the embedding layer
+        
+        # embed the words, using the embedding layer
         embeddings = self.embedding(x)
 
         X = torch.nn.utils.rnn.pack_padded_sequence(embeddings, lengths, batch_first=True, enforce_sorted=False)
@@ -423,21 +421,18 @@ class BiAdvancedLSTM(nn.Module):
             last = lengths[i] - 1 if lengths[i] <= max_length else max_length - 1
             representations_1[i] = ht[i, last, :]
         
-        #construct a sentence representation out of the word embeddings
+        # construct a sentence representation out of the word embeddings
         representations_2 = torch.sum(embeddings,dim=1)  
         for i in range(lengths.shape[0]):
             representations_2[i] = representations_2[i]/lengths[i]
         
-        #find max element of embeddings for each sentance
+        # find max element of embeddings for each sentance
         representations_3,_ = torch.max(embeddings,dim=1)
 
-        #concatenate the 3 represatations
+        # concatenate the 3 represatations
         representations = torch.cat((representations_1,representations_2,representations_3),dim=1)
 
-        ##transform the representations to new ones.
-        # representations = self.activation_func(self.linear_layer(representations))  
-
-        #project the representations to classes using a linear layer
+        # project the representations to classes using a linear layer
         logits = self.output(representations)  
 
         return logits

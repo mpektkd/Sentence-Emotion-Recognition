@@ -18,13 +18,13 @@ class EarlyStopping:#class for the early stopping reguralization
         self.best_score = None
         self.early_stop = False
         self.dev_loss_min = np.Inf
-        self.delta = delta  #definition of the minimum tolerance
+        self.delta = delta  # definition of the minimum tolerance
 
     def __call__(self, train_loss, dev_loss, epoch):
 
         score = -dev_loss
 
-        if self.best_score is None: #check if it is the first epoch
+        if self.best_score is None: # check if it is the first epoch
 
             self.best_score = score
             self.best['epoch'] = epoch
@@ -35,14 +35,14 @@ class EarlyStopping:#class for the early stopping reguralization
                 print(f'Dev loss decreased ({self.dev_loss_min:.6f} --> {dev_loss:.6f}).  Saving model ...')
             
 
-        elif score < self.best_score + self.delta:  #if there is no advance then increase counter
+        elif score < self.best_score + self.delta:  # if there is no advance then increase counter
             self.counter += 1
             print(f'EarlyStopping counter: {self.counter} out of {self.patience}')
 
-            if self.counter >= self.patience:   #if counter == patience then stop
+            if self.counter >= self.patience:   # if counter == patience then stop
                 self.early_stop = True
         else:
-            self.best_score = score #else save the best model till now
+            self.best_score = score # else save the best model till now
             self.counter = 0
             self.best['epoch'] = epoch
             self.best['loss'] = [train_loss, dev_loss]
