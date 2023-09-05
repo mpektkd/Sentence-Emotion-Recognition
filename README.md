@@ -1,6 +1,9 @@
 # Sentence-Emotion-Recognition
 Deep Learning, NLP
 
+This is part of ECE NTUA project. I present ONLY the last task, where i developed an idea
+for Sentiment Regression improvement and use the previous only as reference for this idea.
+
 We are going to present a regression model that predict the 'quantity' of the emotion 
 for a specific sentence, after applying transfer learning to a BiDirectional Atteniton
 LSTM being trained on 'Semeval2017A' dataset. 
@@ -61,6 +64,7 @@ LSTM being trained on 'Semeval2017A' dataset.
   2. It also achieves a very good score, as it reduces the loss to the same order of magnitude as
      the 4 different models.
   3. Regularization with EarlyStopping has been implemented.
+  4. The files that concerned this task is mostly these with prefix 'bonus'. 
   
 
 
